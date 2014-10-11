@@ -2,6 +2,7 @@
 // generated on 2014-10-11 using generator-gulp-webapp 0.1.0
 
 var gulp = require('gulp');
+var connect = require('gulp-connect');
 
 // load plugins
 var $ = require('gulp-load-plugins')();
@@ -11,14 +12,16 @@ gulp.task('styles', function () {
         .pipe($.less())
         .pipe($.autoprefixer('last 1 version'))
         .pipe(gulp.dest('.tmp/styles'))
-        .pipe($.size());
+        .pipe($.size())
+        .pipe(connect.reload());
 });
 
 gulp.task('scripts', function () {
     return gulp.src('app/scripts/**/*.js')
         .pipe($.jshint())
         .pipe($.jshint.reporter(require('jshint-stylish')))
-        .pipe($.size());
+        .pipe($.size())
+        .pipe(connect.reload());
 });
 
 gulp.task('html', ['styles', 'scripts'], function () {
@@ -36,7 +39,8 @@ gulp.task('html', ['styles', 'scripts'], function () {
         .pipe($.useref.restore())
         .pipe($.useref())
         .pipe(gulp.dest('dist'))
-        .pipe($.size());
+        .pipe($.size())
+        .pipe(connect.reload());
 });
 
 gulp.task('images', function () {
@@ -74,18 +78,10 @@ gulp.task('default', ['clean'], function () {
 });
 
 gulp.task('connect', function () {
-    var connect = require('connect');
-    var app = connect()
-        .use(require('connect-livereload')({ port: 35729 }))
-        .use(connect.static('app'))
-        .use(connect.static('.tmp'))
-        .use(connect.directory('app'));
-
-    require('http').createServer(app)
-        .listen(9000)
-        .on('listening', function () {
-            console.log('Started connect web server on http://localhost:9000');
-        });
+    connect.server({
+        root: ['app', '.tmp'],
+        livereload: true
+    });
 });
 
 gulp.task('serve', ['connect', 'styles'], function () {
@@ -105,19 +101,6 @@ gulp.task('wiredep', function () {
 });
 
 gulp.task('watch', ['connect', 'serve'], function () {
-    var server = $.livereload();
-
-    // watch for changes
-
-    gulp.watch([
-        'app/*.html',
-        '.tmp/styles/**/*.css',
-        'app/scripts/**/*.js',
-        'app/images/**/*'
-    ]).on('change', function (file) {
-        server.changed(file.path);
-    });
-
     gulp.watch('app/styles/**/*.less', ['styles']);
     gulp.watch('app/scripts/**/*.js', ['scripts']);
     gulp.watch('app/images/**/*', ['images']);
